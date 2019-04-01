@@ -1,11 +1,11 @@
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import scale 
 from copy import deepcopy
-from cluster import dti_cluster
 import nibabel as nib 
 import numpy as np
 import pandas as pd 
 import h5sparse
+from .cluster import dti_cluster
 
 
 def mask_img(img,val):
@@ -36,30 +36,14 @@ class Query(object):
         else:
             self.dataset = dataset
         if mat is not None:
-            self.data = mat#self.dataset['sparse/matrix'][:]
+            self.data = mat
         else:
             self.data = self.dataset['sparse/matrix'][:]
         self.reference = self.dataset['reference/data'][:]
-        self.x = self.dataset['reference/x'][:] # convert to dask?
+        self.x = self.dataset['reference/x'][:] 
         self.y = self.dataset['reference/y'][:]
         self.z = self.dataset['reference/z'][:]
         self.voxel_num = self.dataset['reference/voxel_num'][:]
-        
-    
-    def reduce_matrix(self, threshold):
-        l = nib.load('../masks/l_white_matter.nii.gz').get_data()
-        l[np.where(l<threshold)] = 0
-        r = nib.load('../masks/r_white_matter.nii.gz').get_data()
-        r[np.where(r<threshold)] = 0
-        white = np.zeros([91,109,91])
-        white[np.where(l>0)] = 1
-        white[np.where(r>0)] = 1
-        
-        to_remove = np.array(self.reference[np.where(white>0)])
-        to_keep = np.delete(np.arange(0,self.data.shape[0]),to_remove)
-        
-        self.data = self.data[:,to_keep]
-        return
         
     
     def init_nifti(self,img_data,header=None,affine=None):
